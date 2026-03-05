@@ -1,0 +1,37 @@
+<div class="container-fluid">
+    <div class="row">
+        {{#cards}}
+        <div class="col-md-4 mb-4">
+            <a href="{{url}}" class="text-decoration-none">
+                <div class="card shadow-sm h-100 dashboard-card">
+                    <div class="card-body text-center">
+
+                        <div class="mb-3">
+                            <i class="fa {{icon}} fa-3x"></i>
+                        </div>
+
+                        <h5 class="card-title">
+                            {{title}}
+                        </h5>
+
+                    </div>
+                </div>
+            </a>
+        </div>
+        {{/cards}}
+    </div>
+</div>
+
+<style>
+.dashboard-card {
+    transition: transform 0.15s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-4px);
+}
+
+.dashboard-card i {
+    color: #0f6cbf;
+}
+</style>

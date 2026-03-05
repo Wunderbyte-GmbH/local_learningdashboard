@@ -1,0 +1,43 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Language strings for Learning Dashboard plugin.
+ *
+ * @package    local_learningdashboard
+ * @copyright  2026 Wunderbyte GmbH
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+$string['pluginname'] = 'Learning Dashboard';
+
+// Dashboard column strings.
+$string['rehacoach'] = 'Reha Coach';
+$string['geschaeftsabschluesse'] = 'Gamification Points';
+$string['lernzielkontrollen'] = 'Learning Goal Control';
+
+// Settings strings.
+$string['settings'] = 'Learning Dashboard Settings';
+$string['coursefilteringheading'] = 'Course Filtering';
+$string['coursefilteringheading_desc'] = 'Configure which courses are included in the Learning Dashboard queries.';
+$string['includedcourses'] = 'Included Courses';
+$string['includedcourses_desc'] = 'Select the courses to include in the dashboard. Leave empty to include all courses.';
+$string['displayoptionsheading'] = 'Display Options';
+$string['displayoptionsheading_desc'] = 'Configure which data points are displayed in the dashboard.';
+$string['showgpoints'] = 'Show Gamification Points (Geschäftsabschlüsse)';
+$string['showgpoints_desc'] = 'Display gamification points column in the dashboard tables.';
+$string['showlzk'] = 'Show Learning Goal Control Points (Lernzielkontrollen)';
+$string['showlzk_desc'] = 'Display learning goal control points column in the dashboard tables.';
