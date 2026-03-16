@@ -1,27 +1,4 @@
 <?php
-// This file is part of Moodle - https://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Moodle is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
-
-/**
- * Trainer dashboard view page displaying trainer progress information.
- *
- * @package    local_learningdashboard
- * @copyright  2026 Wunderbyte GmbH
- * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 require('../../config.php');
 
 use local_wunderbyte_table\filters\types\standardfilter;
@@ -38,9 +15,12 @@ $PAGE->set_heading('Trainer Dashboard');
 
 echo $OUTPUT->header();
 
-$table = new \local_learningdashboard\table\trainer_progress_table('trainer_progress' . $USER->id);
+$table = new \local_learningdashboard\table\trainer_progress_table('trainer_progress_' . $USER->id);
 
 $standardfilter = new standardfilter('name', get_string('fullname'));
+$table->add_filter($standardfilter);
+
+$standardfilter = new standardfilter('coursename', get_string('course'));
 $table->add_filter($standardfilter);
 
 /*
@@ -54,7 +34,10 @@ $table->define_headers([
     get_string('progress'),
     get_string('geschaeftsabschluesse', 'local_learningdashboard'),
     get_string('lernzielkontrollen', 'local_learningdashboard'),
+    get_string('weeklyactivities', 'local_learningdashboard'),
+    get_string('monthlyactivities', 'local_learningdashboard'),
 ]);
+
 /*
  * Columns
  */
@@ -65,13 +48,16 @@ $table->define_columns([
     'department',
     'userprogress',
     'gpoints',
-        'lzk',
-
+    'lzk',
+    'weeklyactivities',
+    'monthlyactivities',
 ]);
 
 /*
  * SQL
  */
+
+$fullname = $DB->sql_fullname('u.firstname', 'u.lastname');
 
 $fields = "m.*";
 
@@ -79,40 +65,58 @@ $from = "(
     SELECT
         CONCAT(u.id, '-', c.id) AS rowid,
         u.id,
-        CONCAT(u.firstname, ' ', u.lastname) AS name,
+        $fullname AS name,
         u.city,
         u.department,
         c.id AS courseid,
         c.fullname AS coursename,
-        '' as gpoints,
+
+        '' AS gpoints,
+        '' AS lzk,
+        '' AS weeklyactivities,
+        '' AS monthlyactivities,
+
         COALESCE(
             ROUND(
-                100 * COUNT(DISTINCT CASE WHEN cmc.completionstate = 1 THEN cm.id END)
-                / NULLIF(COUNT(DISTINCT cm.id), 0),
-            2),
-        0) AS userprogress
+                100 * COALESCE(cc.completed, 0) / NULLIF(cm.total, 0)
+            , 2)
+        , 0) AS userprogress
+
     FROM {user} u
+
     JOIN {user_enrolments} ue ON ue.userid = u.id
     JOIN {enrol} e ON e.id = ue.enrolid
     JOIN {course} c ON c.id = e.courseid
-    LEFT JOIN {course_modules} cm
-        ON cm.course = c.id
-        AND cm.completion > 0
-        AND cm.visible = 1
-    LEFT JOIN {course_modules_completion} cmc
-        ON cmc.coursemoduleid = cm.id
-        AND cmc.userid = u.id
+
+    /* total modules per course */
+    LEFT JOIN (
+        SELECT
+            course,
+            COUNT(*) AS total
+        FROM {course_modules}
+        WHERE completion > 0
+        AND visible = 1
+        GROUP BY course
+    ) cm ON cm.course = c.id
+
+    /* completed modules per user/course */
+    LEFT JOIN (
+        SELECT
+            cm.course,
+            cmc.userid,
+            COUNT(*) AS completed
+        FROM {course_modules_completion} cmc
+        JOIN {course_modules} cm
+            ON cm.id = cmc.coursemoduleid
+            AND cm.completion > 0
+            AND cm.visible = 1
+        WHERE cmc.completionstate = 1
+        GROUP BY cm.course, cmc.userid
+    ) cc ON cc.course = c.id AND cc.userid = u.id
+
     WHERE
         u.deleted = 0
         AND u.city = :city
-    GROUP BY
-        u.id,
-        u.firstname,
-        u.lastname,
-        u.city,
-        u.department,
-        c.id,
-        c.fullname
 ) m";
 
 $where = "1=1";
@@ -121,55 +125,78 @@ $params = [
     'city' => $USER->city,
 ];
 
-// Apply course filtering if configured.
+/*
+ * Course filter
+ */
 [$coursefiltersql, $coursefilterparams] = local_learningdashboard_get_course_filter_sql('c');
+
 if (!empty($coursefiltersql)) {
-    // We need to modify the FROM clause to include course filtering within the subquery.
+
     $from = "(
         SELECT
             CONCAT(u.id, '-', c.id) AS rowid,
             u.id,
-            CONCAT(u.firstname, ' ', u.lastname) AS name,
+            $fullname AS name,
             u.city,
             u.department,
             c.id AS courseid,
             c.fullname AS coursename,
-            '' as gpoints,
+
+            '' AS gpoints,
+            '' AS lzk,
+            '' AS weeklyactivities,
+            '' AS monthlyactivities,
+
             COALESCE(
                 ROUND(
-                    100 * COUNT(DISTINCT CASE WHEN cmc.completionstate = 1 THEN cm.id END)
-                    / NULLIF(COUNT(DISTINCT cm.id), 0),
-                2),
-            0) AS userprogress
+                    100 * COALESCE(cc.completed, 0) / NULLIF(cm.total, 0)
+                , 2)
+            , 0) AS userprogress
+
         FROM {user} u
+
         JOIN {user_enrolments} ue ON ue.userid = u.id
         JOIN {enrol} e ON e.id = ue.enrolid
         JOIN {course} c ON c.id = e.courseid
-        LEFT JOIN {course_modules} cm
-            ON cm.course = c.id
-            AND cm.completion > 0
-            AND cm.visible = 1
-        LEFT JOIN {course_modules_completion} cmc
-            ON cmc.coursemoduleid = cm.id
-            AND cmc.userid = u.id
+
+        LEFT JOIN (
+            SELECT
+                course,
+                COUNT(*) AS total
+            FROM {course_modules}
+            WHERE completion > 0
+            AND visible = 1
+            GROUP BY course
+        ) cm ON cm.course = c.id
+
+        LEFT JOIN (
+            SELECT
+                cm.course,
+                cmc.userid,
+                COUNT(*) AS completed
+            FROM {course_modules_completion} cmc
+            JOIN {course_modules} cm
+                ON cm.id = cmc.coursemoduleid
+                AND cm.completion > 0
+                AND cm.visible = 1
+            WHERE cmc.completionstate = 1
+            GROUP BY cm.course, cmc.userid
+        ) cc ON cc.course = c.id AND cc.userid = u.id
+
         WHERE
             u.deleted = 0
             AND u.city = :city
-            AND " . $coursefiltersql . "
-        GROUP BY
-            u.id,
-            u.firstname,
-            u.lastname,
-            u.city,
-            u.department,
-            c.id,
-            c.fullname
+            AND $coursefiltersql
     ) m";
+
     $params = array_merge($params, $coursefilterparams);
 }
 
 $table->set_filter_sql($fields, $from, $where, '', $params);
 
+/*
+ * Sorting
+ */
 $table->sortable(true, 'name', SORT_ASC);
 
 $table->define_sortablecolumns([
@@ -178,12 +205,18 @@ $table->define_sortablecolumns([
     'city',
     'department',
     'userprogress',
+    'weeklyactivities',
+    'monthlyactivities',
 ]);
 
+/*
+ * Fulltext search
+ */
 $table->define_fulltextsearchcolumns([
     'name',
     'coursename',
 ]);
+$table->showfilterontop = true;
 
 $table->pageable(true);
 

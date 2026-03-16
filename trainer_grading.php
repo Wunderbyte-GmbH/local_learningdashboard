@@ -38,13 +38,14 @@ $PAGE->set_heading('Offene Bewertungen');
 
 echo $OUTPUT->header();
 
-$table = new \local_learningdashboard\table\grading_overview_table('grading_overview' . $USER->id);
+$table = new \local_learningdashboard\table\grading_overview_table('grading_overviewtest' . $USER->id);
 
-/*
- * Filters
- */
-$standardfilter = new standardfilter('fullname', get_string('fullname'));
+$standardfilter = new standardfilter('fullname', get_string('course'));
 $table->add_filter($standardfilter);
+
+
+// $standardfilter = new standardfilter('name', get_string('course'));
+// $table->add_filter($standardfilter);
 
 /*
  * Headers
@@ -77,7 +78,7 @@ $table->define_columns([
 $fields = "
     s.id AS rowid,
     u.id AS userid,
-    CONCAT(u.firstname, ' ', u.lastname) AS name,
+      " . $DB->sql_fullname('u.firstname', 'u.lastname') . " AS name,
     u.city,
     c.fullname AS coursename,
     a.name AS assignmentname,
@@ -120,6 +121,8 @@ $table->define_sortablecolumns([
     'coursename',
     'assignmentname',
     'submittedat',
+    'weeklyactivities',
+    'monthlyactivities',
 ]);
 
 /*
@@ -130,6 +133,7 @@ $table->define_fulltextsearchcolumns([
     'coursename',
     'assignmentname',
 ]);
+$table->showfilterontop = true;
 
 $table->pageable(true);
 

@@ -93,7 +93,7 @@ JOIN {user} u
 LEFT JOIN {grade_grades} gg
     ON gg.itemid = gi.id
     AND gg.userid = u.id
-WHERE a.name LIKE 'G:%'
+WHERE a.name LIKE 'Kompetenzcheck%'
         ";
 
         $rs = $DB->get_recordset_sql($sql);

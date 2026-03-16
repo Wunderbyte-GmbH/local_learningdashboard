@@ -18,7 +18,7 @@
  * Student dashboard view page.
  *
  * @package    local_learningdashboard
- * @copyright  2026
+ * @copyright  2026 Wunderbyte GmbH
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -41,22 +41,26 @@ echo $OUTPUT->header();
 
 $table = new student_progress_table('student_progress' . $USER->id);
 
-$standardfilter = new standardfilter('fullname', get_string('fullname'));
-$table->add_filter($standardfilter);
+$fullname = $DB->sql_fullname('u.firstname', 'u.lastname');
+
 // Headers.
 $table->define_headers([
     get_string('course'),
     get_string('progress'),
      get_string('geschaeftsabschluesse', 'local_learningdashboard'),
      get_string('lernzielkontrollen', 'local_learningdashboard'),
+     get_string('weeklyactivities', 'local_learningdashboard'),
+     get_string('monthlyactivities', 'local_learningdashboard'),
     ]);
 
 // Columns.
 $table->define_columns([
-    'fullname',
+    'coursename',
     'userprogress',
     'gpoints',
     'lzk',
+    'weeklyactivities',
+    'monthlyactivities',
     ]);
 
     /*
@@ -70,13 +74,17 @@ $table->define_columns([
             CONCAT(u.id, '-', c.id) AS rowid,
             u.id,
             c.id AS courseid,
-            c.fullname,
+            c.fullname as coursename,
+            '' AS gpoints,
+            '' AS lzk,
+            '' AS weeklyactivities,
+            '' AS monthlyactivities,
             COALESCE(
                 ROUND(
                     SUM(CASE WHEN cmc.completionstate = 1 THEN 1 ELSE 0 END)
                     / NULLIF(COUNT(cm.id), 0) * 100,
                 2),
-            0) AS progress
+            0) AS userprogress
         FROM {course} c
         JOIN {enrol} e ON e.courseid = c.id
         JOIN {user_enrolments} ue
@@ -102,22 +110,26 @@ $table->define_columns([
         'userid2' => $USER->id,
     ];
 
-    // Apply course filtering if configured.
+    /*
+    * Course filter
+    */
     [$coursefiltersql, $coursefilterparams] = local_learningdashboard_get_course_filter_sql('c');
+
     if (!empty($coursefiltersql)) {
-        // We need to modify the WHERE clause to include course filtering within the subquery.
         $from = "(
             SELECT
                 CONCAT(u.id, '-', c.id) AS rowid,
                 u.id,
                 c.id AS courseid,
-                c.fullname,
-                COALESCE(
-                    ROUND(
-                        SUM(CASE WHEN cmc.completionstate = 1 THEN 1 ELSE 0 END)
-                        / NULLIF(COUNT(cm.id), 0) * 100,
-                    2),
-                0) AS progress
+                c.fullname as coursename,
+                '' AS gpoints,
+                '' AS lzk,
+                '' AS weeklyactivities,
+                '' AS monthlyactivities,
+                ROUND(
+                    (SUM(CASE WHEN cmc.completionstate = 1 THEN 1 ELSE 0 END) * 100.0)
+                    / NULLIF(COUNT(cm.id), 0),
+                2) AS userprogress
             FROM {course} c
             JOIN {enrol} e ON e.courseid = c.id
             JOIN {user_enrolments} ue
@@ -140,13 +152,15 @@ $table->define_columns([
 
     $table->set_filter_sql($fields, $from, $where, '', $params);
 
-    $table->sortable(true, 'fullname', SORT_ASC);
+    $table->sortable(true, 'coursename', SORT_ASC);
 
     $table->define_sortablecolumns([
-        'fullname',
+        'coursename',
         'userprogress',
         'gpoints',
         'lzk',
+        'weeklyactivities',
+        'monthlyactivities',
     ]);
 
     $table->define_fulltextsearchcolumns([

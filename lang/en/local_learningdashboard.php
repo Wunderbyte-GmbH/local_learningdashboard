@@ -22,22 +22,23 @@
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['pluginname'] = 'Learning Dashboard';
-
-// Dashboard column strings.
-$string['rehacoach'] = 'Reha Coach';
-$string['geschaeftsabschluesse'] = 'Gamification Points';
-$string['lernzielkontrollen'] = 'Learning Goal Control';
-
-// Settings strings.
-$string['settings'] = 'Learning Dashboard Settings';
 $string['coursefilteringheading'] = 'Course Filtering';
 $string['coursefilteringheading_desc'] = 'Configure which courses are included in the Learning Dashboard queries.';
-$string['includedcourses'] = 'Included Courses';
-$string['includedcourses_desc'] = 'Select the courses to include in the dashboard. Leave empty to include all courses.';
 $string['displayoptionsheading'] = 'Display Options';
 $string['displayoptionsheading_desc'] = 'Configure which data points are displayed in the dashboard.';
+$string['geschaeftsabschluesse'] = 'Gamification Points';
+$string['includedcourses'] = 'Included Courses';
+$string['includedcourses_desc'] = 'Select the courses to include in the dashboard. Leave empty to include all courses.';
+$string['lernzielkontrollen'] = 'Learning Goal Control';
+$string['local/learningdashboard:manage'] = 'Manage learning dashboard settings';
+$string['local/learningdashboard:viewstudent'] = 'View student learning dashboard';
+$string['local/learningdashboard:viewtrainer'] = 'View trainer learning dashboard';
+$string['monthlyactivities'] = 'Month';
+$string['pluginname'] = 'Learning Dashboard';
+$string['rehacoach'] = 'Reha Coach';
+$string['settings'] = 'Learning Dashboard Settings';
 $string['showgpoints'] = 'Show Gamification Points (Geschäftsabschlüsse)';
 $string['showgpoints_desc'] = 'Display gamification points column in the dashboard tables.';
 $string['showlzk'] = 'Show Learning Goal Control Points (Lernzielkontrollen)';
 $string['showlzk_desc'] = 'Display learning goal control points column in the dashboard tables.';
+$string['weeklyactivities'] = 'Week';

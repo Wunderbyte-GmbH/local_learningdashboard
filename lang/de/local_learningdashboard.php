@@ -22,22 +22,23 @@
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['pluginname'] = 'Learning Dashboard';
-
-// Dashboard column strings.
-$string['rehacoach'] = 'Reha Coach';
-$string['geschaeftsabschluesse'] = 'Geschäftsabschlüsse';
-$string['lernzielkontrollen'] = 'Lernzielkontrollen';
-
-// Settings strings.
-$string['settings'] = 'Learning Dashboard Einstellungen';
 $string['coursefilteringheading'] = 'Kursfilterung';
 $string['coursefilteringheading_desc'] = 'Konfigurieren Sie, welche Kurse in den Learning Dashboard-Abfragen enthalten sind.';
-$string['includedcourses'] = 'Eingeschlossene Kurse';
-$string['includedcourses_desc'] = 'Wählen Sie die Kurse aus, die im Dashboard angezeigt werden sollen. Lassen Sie leer, um alle Kurse einzuschließen.';
 $string['displayoptionsheading'] = 'Anzeigeoptionen';
 $string['displayoptionsheading_desc'] = 'Konfigurieren Sie, welche Datenpunkte im Dashboard angezeigt werden.';
+$string['geschaeftsabschluesse'] = 'Geschäftsabschlüsse';
+$string['includedcourses'] = 'Eingeschlossene Kurse';
+$string['includedcourses_desc'] = 'Wählen Sie die Kurse aus, die im Dashboard angezeigt werden sollen. Lassen Sie leer, um alle Kurse einzuschließen.';
+$string['lernzielkontrollen'] = 'Lernzielkontrollen';
+$string['local/learningdashboard:manage'] = 'Learning-Dashboard-Einstellungen verwalten';
+$string['local/learningdashboard:viewstudent'] = 'Schüler-Learning-Dashboard anzeigen';
+$string['local/learningdashboard:viewtrainer'] = 'Trainer-Learning-Dashboard anzeigen';
+$string['monthlyactivities'] = 'Monat';
+$string['pluginname'] = 'Learning Dashboard';
+$string['rehacoach'] = 'Reha Coach';
+$string['settings'] = 'Learning Dashboard Einstellungen';
 $string['showgpoints'] = 'Gamifizierungspunkte anzeigen (Geschäftsabschlüsse)';
 $string['showgpoints_desc'] = 'Zeigen Sie die Spalte Gamifizierungspunkte in den Dashboard-Tabellen an.';
 $string['showlzk'] = 'Lernzielkontrollen anzeigen';
 $string['showlzk_desc'] = 'Zeigen Sie die Spalte Lernzielkontrollen in den Dashboard-Tabellen an.';
+$string['weeklyactivities'] = 'Woche';

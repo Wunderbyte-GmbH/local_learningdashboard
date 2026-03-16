@@ -24,71 +24,11 @@
 
 namespace local_learningdashboard\table;
 
-use local_wunderbyte_table\wunderbyte_table;
-use html_writer;
-use stdClass;
-
 /**
  * Table class for displaying badge information.
  *
- * This table extends wunderbyte_table to display user badges with custom column formatting
+ * This table extends base_learningdashboard_table to display user badges with custom column formatting
  * for badge-related information such as type, date issued, and badge names.
  */
-class badge_table extends wunderbyte_table {
-    /**
-     *
-     * @var string component where cache defintion is to be found.
-     */
-    public $cachecomponent = 'local_learningdashboard';
-
-    /**
-     *
-     * @var string name of the cache definition in the above defined component.
-     */
-    public $rawcachename = 'cachedrawdata';
-
-    /**
-     *
-     * @var string name of the cache definition in the above defined component.
-     */
-    public $renderedcachename = 'cachedfulltable';
-    /**
-     * Format the fullname column for display.
-     *
-     * @param stdClass $values The row data object.
-     * @return string The formatted full name.
-     */
-    public function col_fullname($values): string {
-        return fullname($values);
-    }
-
-    /**
-     * Format the date issued column for display.
-     *
-     * @param stdClass $values The row data object.
-     * @return string The formatted date.
-     */
-    public function col_dateissued(stdClass $values): string {
-        return userdate($values->dateissued);
-    }
-
-    /**
-     * Format the badge type column for display.
-     *
-     * @param stdClass $values The row data object.
-     * @return string The badge type (Site Badge or Course Badge).
-     */
-    public function col_type(stdClass $values): string {
-        return $values->type == 1 ? 'Site Badge' : 'Course Badge';
-    }
-
-    /**
-     * Format the badge name column for display with bold formatting.
-     *
-     * @param stdClass $values The row data object.
-     * @return string The formatted badge name in bold.
-     */
-    public function col_badgename(stdClass $values): string {
-        return html_writer::tag('strong', $values->badgename);
-    }
+class badge_table extends base_learningdashboard_table {
 }

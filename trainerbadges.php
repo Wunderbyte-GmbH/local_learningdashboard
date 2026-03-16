@@ -47,7 +47,19 @@ $table->set_sql(
     b.name as badgename,
     b.type,
     b.courseid,
-    bi.dateissued
+    bi.dateissued,
+    COALESCE(
+        (SELECT COUNT(*)
+         FROM {course_modules_completion} cmc2
+         WHERE cmc2.userid = u.id
+         AND cmc2.timemodified >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        ), 0) AS weeklyactivities,
+    COALESCE(
+        (SELECT COUNT(*)
+         FROM {course_modules_completion} cmc3
+         WHERE cmc3.userid = u.id
+         AND cmc3.timemodified >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        ), 0) AS monthlyactivities
     ",
     "
     {badge_issued} bi
@@ -66,6 +78,8 @@ $table->define_columns([
     'badgename',
     'type',
     'dateissued',
+    'weeklyactivities',
+    'monthlyactivities',
 ]);
 
 $table->define_headers([
@@ -73,6 +87,8 @@ $table->define_headers([
     'Badge',
     'Typ',
     'Erhalten am',
+    get_string('weeklyactivities', 'local_learningdashboard'),
+    get_string('monthlyactivities', 'local_learningdashboard'),
 ]);
 
 $table->out(25, true);

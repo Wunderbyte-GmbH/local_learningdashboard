@@ -24,7 +24,6 @@
 
 namespace local_learningdashboard\table;
 
-use local_wunderbyte_table\wunderbyte_table;
 use html_writer;
 use moodle_url;
 use stdClass;
@@ -32,61 +31,14 @@ use stdClass;
 /**
  * Table class for displaying grading overview information.
  *
- * This table extends wunderbyte_table to provide custom column formatting
+ * This table extends base_learningdashboard_table to provide custom column formatting
  * for grading information.
  *
  * @package    local_learningdashboard
  * @copyright  2026 Wunderbyte GmbH
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class grading_overview_table extends wunderbyte_table {
-    /**
-     *
-     * @var string component where cache defintion is to be found.
-     */
-    public $cachecomponent = 'local_learningdashboard';
-
-    /**
-     *
-     * @var string name of the cache definition in the above defined component.
-     */
-    public $rawcachename = 'cachedrawdata';
-
-    /**
-     *
-     * @var string name of the cache definition in the above defined component.
-     */
-    public $renderedcachename = 'cachedfulltable';
-    /**
-     * Format the fullname column for display.
-     *
-     * @param stdClass $values The row data object.
-     * @return string The formatted full name.
-     */
-    public function col_fullname($values): string {
-        return fullname($values);
-    }
-
-    /**
-     * Format the submitted at date column for display.
-     *
-     * @param stdClass $values The row data object.
-     * @return string The formatted date.
-     */
-    public function col_submittedat(stdClass $values): string {
-        return userdate($values->submittedat);
-    }
-
-    /**
-     * Format the attempt number column for display.
-     *
-     * @param stdClass $values The row data object.
-     * @return string The formatted attempt number (1-based).
-     */
-    public function col_attemptnumber(stdClass $values): string {
-        return (int)$values->attemptnumber + 1;
-    }
-
+class grading_overview_table extends base_learningdashboard_table {
     /**
      * Format the grade link column for display with a link to grading page.
      *

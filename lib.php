@@ -33,7 +33,17 @@ function local_learningdashboard_render_navbar_output(\renderer_base $renderer) 
 
     $context = context_system::instance();
 
-    $output = '';
+    // Check if user is admin or has learning dashboard permissions.
+    $isadmin = is_siteadmin($USER->id);
+    $hasviewtrainer = has_capability('local/learningdashboard:viewtrainer', $context);
+    $hasviewstudent = has_capability('local/learningdashboard:viewstudent', $context);
+    $hasmanage = has_capability('local/learningdashboard:manage', $context);
+
+    if ($isadmin || $hasviewtrainer || $hasviewstudent || $hasmanage) {
+        $output = '<div><a href="' . $CFG->wwwroot . '/local/learningdashboard/index.php" class="nav-link icon-no-margin"><i class="icon fa fa-chart-line fa-fw navicon" title="Learning Dashboard"></i></a></div>';
+    } else {
+        $output = '';
+    }
 
     return $output;
 }

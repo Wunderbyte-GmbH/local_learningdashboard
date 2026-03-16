@@ -46,6 +46,9 @@ $table->add_filter($standardfilter);
 $standardfilter = new standardfilter('city', get_string('city'));
 $table->add_filter($standardfilter);
 
+$standardfilter = new standardfilter('coursename', get_string('course'));
+$table->add_filter($standardfilter);
+
 /*
  * Headers
  */
@@ -68,8 +71,7 @@ $table->define_columns([
     'department',
     'userprogress',
     'gpoints',
-        'lzk',
-
+    'lzk',
 ]);
 
 /*
