@@ -40,7 +40,8 @@ function local_learningdashboard_render_navbar_output(\renderer_base $renderer) 
     $hasmanage = has_capability('local/learningdashboard:manage', $context);
 
     if ($isadmin || $hasviewtrainer || $hasviewstudent || $hasmanage) {
-        $output = '<div><a href="' . $CFG->wwwroot . '/local/learningdashboard/index.php" class="nav-link icon-no-margin"><i class="icon fa fa-chart-line fa-fw navicon" title="Learning Dashboard"></i></a></div>';
+        $output = '<div><a href="' . $CFG->wwwroot . '/local/learningdashboard/index.php" class="nav-link icon-no-margin">
+        <i class="icon fa fa-chart-line fa-fw navicon" title="Learning Dashboard"></i></a></div>';
     } else {
         $output = '';
     }
@@ -65,7 +66,7 @@ function local_learningdashboard_get_course_filter_sql($coursealias = 'c'): arra
         return ['', []];
     }
 
-    // Handle both serialized and JSON formats.
+    // Handle JSON, serialized, and comma-separated formats.
     $courseids = [];
 
     // Try JSON decode first.
@@ -77,6 +78,9 @@ function local_learningdashboard_get_course_filter_sql($coursealias = 'c'): arra
         $unserialized = @unserialize($includedcourses);
         if (is_array($unserialized)) {
             $courseids = $unserialized;
+        } else if (strpos($includedcourses, ',') !== false) {
+            // Handle comma-separated values.
+            $courseids = array_map('trim', explode(',', $includedcourses));
         } else {
             // If it's a plain string/number, treat it as a single course ID.
             $courseids = [$includedcourses];

@@ -31,6 +31,9 @@ require_login();
 $context = context_system::instance();
 require_capability('local/learningdashboard:viewtrainer', $context);
 
+// Get optional 'my' parameter to show only current user's data.
+$my = optional_param('my', false, PARAM_BOOL);
+
 $PAGE->set_url('/local/learningdashboard/trainer.php');
 $PAGE->set_context($context);
 $PAGE->set_title('Trainer Dashboard');
@@ -43,11 +46,14 @@ $table = new \local_learningdashboard\table\trainer_progress_table('reha_coach_p
 $standardfilter = new standardfilter('name', get_string('fullname'));
 $table->add_filter($standardfilter);
 
-$standardfilter = new standardfilter('city', get_string('city'));
-$table->add_filter($standardfilter);
-
 $standardfilter = new standardfilter('coursename', get_string('course'));
 $table->add_filter($standardfilter);
+
+// Add department filter if user has no department assigned or if 'my' parameter is not set.
+if (empty($USER->department) && !$my) {
+    $standardfilter = new standardfilter('department', get_string('department'));
+    $table->add_filter($standardfilter);
+}
 
 /*
  * Headers
@@ -56,11 +62,14 @@ $table->define_headers([
     get_string('name'),
     get_string('course'),
     get_string('city'),
-    get_string('rehacoach', 'local_learningdashboard'),
+    get_string('department'),
     get_string('progress'),
     get_string('geschaeftsabschluesse', 'local_learningdashboard'),
     get_string('lernzielkontrollen', 'local_learningdashboard'),
+    get_string('weeklyactivities', 'local_learningdashboard'),
+    get_string('monthlyactivities', 'local_learningdashboard'),
 ]);
+
 /*
  * Columns
  */
@@ -72,110 +81,162 @@ $table->define_columns([
     'userprogress',
     'gpoints',
     'lzk',
+    'weeklyactivities',
+    'monthlyactivities',
 ]);
 
 /*
  * SQL
  */
 
+$fullname = $DB->sql_fullname('u.firstname', 'u.lastname');
+
 $fields = "m.*";
+
+// Build WHERE clause for department filtering.
+// If 'my' is true, show only current user's department (no filter needed).
+// If 'my' is false and user has department, show only that department.
+// If 'my' is false and user has no department, show all departments (filter available).
+$departmentwhere = '';
+$departmentparams = [];
+
+if ($my && !empty($USER->department)) {
+    // Show only current user's department.
+    $departmentwhere = 'AND u.department = :department';
+    $departmentparams = ['department' => $USER->department];
+} else if (!$my && !empty($USER->department)) {
+    // Show only current user's department (but they can't filter).
+    $departmentwhere = 'AND u.department = :department';
+    $departmentparams = ['department' => $USER->department];
+}
+// If !$my and empty($USER->department), show all with no WHERE clause (filter available above).
 
 $from = "(
     SELECT
         CONCAT(u.id, '-', c.id) AS rowid,
         u.id,
-        CONCAT(u.firstname, ' ', u.lastname) AS name,
+        $fullname AS name,
         u.city,
         u.department,
-        u.timemodified,
         c.id AS courseid,
         c.fullname AS coursename,
-        '' as gpoints,
-            COALESCE(
-                ROUND(
-                    100 * COUNT(DISTINCT CASE WHEN cmc.completionstate = 1 THEN cm.id END)
-                    / NULLIF(COUNT(DISTINCT cm.id), 0),
-                2),
-            0) AS progress
+
+        '' AS gpoints,
+        '' AS lzk,
+        '' AS weeklyactivities,
+        '' AS monthlyactivities,
+
+        COALESCE(
+            ROUND(
+                100 * COALESCE(cc.completed, 0) / NULLIF(cm.total, 0)
+            , 2)
+        , 0) AS userprogress
+
     FROM {user} u
+
     JOIN {user_enrolments} ue ON ue.userid = u.id
     JOIN {enrol} e ON e.id = ue.enrolid
     JOIN {course} c ON c.id = e.courseid
-    LEFT JOIN {course_modules} cm
-        ON cm.course = c.id
-        AND cm.completion > 0
-        AND cm.visible = 1
-    LEFT JOIN {course_modules_completion} cmc
-        ON cmc.coursemoduleid = cm.id
-        AND cmc.userid = u.id
+
+    /* total modules per course */
+    LEFT JOIN (
+        SELECT
+            course,
+            COUNT(*) AS total
+        FROM {course_modules}
+        WHERE completion > 0
+        AND visible = 1
+        GROUP BY course
+    ) cm ON cm.course = c.id
+
+    /* completed modules per user/course */
+    LEFT JOIN (
+        SELECT
+            cm.course,
+            cmc.userid,
+            COUNT(*) AS completed
+        FROM {course_modules_completion} cmc
+        JOIN {course_modules} cm
+            ON cm.id = cmc.coursemoduleid
+            AND cm.completion > 0
+            AND cm.visible = 1
+        WHERE cmc.completionstate = 1
+        GROUP BY cm.course, cmc.userid
+    ) cc ON cc.course = c.id AND cc.userid = u.id
+
     WHERE
         u.deleted = 0
-        AND u.department = :department
-        And u.timemodified = :time
-    GROUP BY
-        u.id,
-        u.firstname,
-        u.lastname,
-        u.city,
-        u.department,
-        c.id,
-        c.fullname
+        $departmentwhere
 ) m";
 
 $where = "1=1";
 
-$params = [
-    'department' => $USER->department,
-    'time' => time(),
-];
+$params = $departmentparams;
 
-// Apply course filtering if configured.
+/*
+ * Course filter
+ */
 [$coursefiltersql, $coursefilterparams] = local_learningdashboard_get_course_filter_sql('c');
+
 if (!empty($coursefiltersql)) {
-    // We need to modify the FROM clause to include course filtering within the subquery.
     $from = "(
         SELECT
             CONCAT(u.id, '-', c.id) AS rowid,
             u.id,
-            CONCAT(u.firstname, ' ', u.lastname) AS name,
+            $fullname AS name,
             u.city,
-            u.timemodified,
             u.department,
             c.id AS courseid,
             c.fullname AS coursename,
-            '' as gpoints,
+
+            '' AS gpoints,
+            '' AS lzk,
+            '' AS weeklyactivities,
+            '' AS monthlyactivities,
+
             COALESCE(
                 ROUND(
-                    100 * COUNT(DISTINCT CASE WHEN cmc.completionstate = 1 THEN cm.id END)
-                    / NULLIF(COUNT(DISTINCT cm.id), 0),
-                2),
-            0) AS progress
+                    100 * COALESCE(cc.completed, 0) / NULLIF(cm.total, 0)
+                , 2)
+            , 0) AS userprogress
+
         FROM {user} u
+
         JOIN {user_enrolments} ue ON ue.userid = u.id
         JOIN {enrol} e ON e.id = ue.enrolid
         JOIN {course} c ON c.id = e.courseid
-        LEFT JOIN {course_modules} cm
-            ON cm.course = c.id
-            AND cm.completion > 0
-            AND cm.visible = 1
-        LEFT JOIN {course_modules_completion} cmc
-            ON cmc.coursemoduleid = cm.id
-            AND cmc.userid = u.id
+
+        LEFT JOIN (
+            SELECT
+                course,
+                COUNT(*) AS total
+            FROM {course_modules}
+            WHERE completion > 0
+            AND visible = 1
+            GROUP BY course
+        ) cm ON cm.course = c.id
+
+        LEFT JOIN (
+            SELECT
+                cm.course,
+                cmc.userid,
+                COUNT(*) AS completed
+            FROM {course_modules_completion} cmc
+            JOIN {course_modules} cm
+                ON cm.id = cmc.coursemoduleid
+                AND cm.completion > 0
+                AND cm.visible = 1
+            WHERE cmc.completionstate = 1
+            GROUP BY cm.course, cmc.userid
+        ) cc ON cc.course = c.id AND cc.userid = u.id
+
         WHERE
             u.deleted = 0
-            AND u.department = :department
-            AND u.timemodified < :time
-            AND " . $coursefiltersql . "
-        GROUP BY
-            u.id,
-            u.firstname,
-            u.lastname,
-            u.city,
-            u.department,
-            c.id,
-            c.fullname
+            $departmentwhere
+            AND $coursefiltersql
     ) m";
-    $params = array_merge($params, $coursefilterparams);
+
+    $params = array_merge($departmentparams, $coursefilterparams);
 }
 
 $table->set_filter_sql($fields, $from, $where, '', $params);
@@ -188,6 +249,8 @@ $table->define_sortablecolumns([
     'city',
     'department',
     'userprogress',
+    'weeklyactivities',
+    'monthlyactivities',
 ]);
 
 $table->define_fulltextsearchcolumns([
