@@ -49,4 +49,12 @@ $capabilities = [
             'manager' => CAP_ALLOW,
         ],
     ],
+
+    'local/learningdashboard:viewrehacoach' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => [
+            'manager' => CAP_ALLOW,
+        ],
+    ],
 ];

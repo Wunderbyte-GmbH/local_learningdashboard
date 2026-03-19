@@ -30,6 +30,7 @@ $string['geschaeftsabschluesse'] = 'Geschäftsabschlüsse';
 $string['includedcourses'] = 'Eingeschlossene Kurse';
 $string['includedcourses_desc'] = 'Wählen Sie die Kurse aus, die im Dashboard angezeigt werden sollen. Lassen Sie leer, um alle Kurse einzuschließen.';
 $string['learningdashboard:manage'] = 'Learning-Dashboard-Einstellungen verwalten';
+$string['learningdashboard:viewrehacoach'] = 'Reha-Coach-Dashboard anzeigen';
 $string['learningdashboard:viewstudent'] = 'Schüler-Learning-Dashboard anzeigen';
 $string['learningdashboard:viewtrainer'] = 'Trainer-Learning-Dashboard anzeigen';
 $string['lernzielkontrollen'] = 'Lernzielkontrollen';

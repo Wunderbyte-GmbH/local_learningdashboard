@@ -50,15 +50,17 @@ if (has_capability('local/learningdashboard:viewtrainer', $context)) {
     ];
 
     $cards[] = [
-        'title' => 'Rehacoach View',
-        'url' => (new moodle_url('/local/learningdashboard/rehacoach.php'))->out(),
-        'icon' => 'fa-user-md',
-    ];
-
-    $cards[] = [
         'title' => 'Trainer Grading',
         'url' => (new moodle_url('/local/learningdashboard/trainer_grading.php'))->out(),
         'icon' => 'fa-clipboard-check',
+    ];
+}
+
+if (has_capability('local/learningdashboard:viewrehacoach', $context)) {
+    $cards[] = [
+        'title' => 'Rehacoach View',
+        'url' => (new moodle_url('/local/learningdashboard/rehacoach.php', ['my' => 1]))->out(),
+        'icon' => 'fa-user-md',
     ];
 }
 
@@ -69,11 +71,11 @@ if (has_capability('local/learningdashboard:viewstudent', $context)) {
         'icon' => 'fa-user-graduate',
     ];
 
-    $cards[] = [
-        'title' => 'Student Badges',
-        'url' => (new moodle_url('/local/learningdashboard/studentbadges.php'))->out(),
-        'icon' => 'fa-award',
-    ];
+    // $cards[] = [
+    //     'title' => 'Student Badges',
+    //     'url' => (new moodle_url('/local/learningdashboard/studentbadges.php'))->out(),
+    //     'icon' => 'fa-award',
+    // ];
 }
 
 echo $OUTPUT->header();

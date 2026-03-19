@@ -43,6 +43,12 @@ $table = new \local_learningdashboard\table\grading_overview_table('grading_over
 $standardfilter = new standardfilter('fullname', get_string('course'));
 $table->add_filter($standardfilter);
 
+$standardfilter = new standardfilter('city', get_string('city'));
+$table->add_filter($standardfilter);
+
+$standardfilter = new standardfilter('department', get_string('department'));
+$table->add_filter($standardfilter);
+
 
 // $standardfilter = new standardfilter('name', get_string('course'));
 // $table->add_filter($standardfilter);

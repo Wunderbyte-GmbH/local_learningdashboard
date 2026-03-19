@@ -24,7 +24,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_learningdashboard';
-$plugin->version   = 2026031901;
+$plugin->version   = 2026031902;
 $plugin->requires  = 2023100900;
 $plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = '0.1';
+$plugin->release   = '0.9';

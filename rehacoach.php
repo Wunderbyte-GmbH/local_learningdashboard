@@ -29,7 +29,7 @@ use local_wunderbyte_table\filters\types\standardfilter;
 require_login();
 
 $context = context_system::instance();
-require_capability('local/learningdashboard:viewtrainer', $context);
+require_capability('local/learningdashboard:viewrehacoach', $context);
 
 // Get optional 'my' parameter to show only current user's data.
 $my = optional_param('my', false, PARAM_BOOL);
