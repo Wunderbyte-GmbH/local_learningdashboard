@@ -69,8 +69,8 @@ $table->add_filter($standardfilter);
 $standardfilter = new standardfilter('coursename', get_string('course'));
 $table->add_filter($standardfilter);
 
-// Add department filter if user has no department assigned or if 'my' parameter is not set.
-if (empty($USER->department) && !$my) {
+// Add department filter when showing all users (my=0).
+if (!$my) {
     $standardfilter = new standardfilter('department', get_string('department'));
     $table->add_filter($standardfilter);
 }
