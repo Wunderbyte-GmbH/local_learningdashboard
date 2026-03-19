@@ -34,14 +34,34 @@ require_capability('local/learningdashboard:viewtrainer', $context);
 // Get optional 'my' parameter to show only current user's data.
 $my = optional_param('my', false, PARAM_BOOL);
 
-$PAGE->set_url('/local/learningdashboard/trainer.php');
+$PAGE->set_url('/local/learningdashboard/rehacoach.php');
 $PAGE->set_context($context);
-$PAGE->set_title('Trainer Dashboard');
-$PAGE->set_heading('Trainer Dashboard');
+$PAGE->set_title('Reha Coach Dashboard');
+$PAGE->set_heading('Reha Coach Dashboard');
 
 echo $OUTPUT->header();
 
-$table = new \local_learningdashboard\table\trainer_progress_table('reha_coach_progress');
+// Add button to show all when my=1.
+if ($my) {
+    echo html_writer::link(
+        new moodle_url('/local/learningdashboard/rehacoach.php', ['my' => 0]),
+        get_string('showall', 'local_learningdashboard'),
+        ['class' => 'btn btn-primary']
+    );
+    echo html_writer::end_tag('div');
+}
+
+// Add button to show my department when my=0.
+if (!$my && !empty($USER->department)) {
+    echo html_writer::link(
+        new moodle_url('/local/learningdashboard/rehacoach.php', ['my' => 1]),
+        get_string('showmy', 'local_learningdashboard'),
+        ['class' => 'btn btn-primary']
+    );
+    echo html_writer::end_tag('div');
+}
+
+$table = new \local_learningdashboard\table\trainer_progress_table('reha_coach_progress' .  $my . '_' . $USER->id);
 
 $standardfilter = new standardfilter('name', get_string('fullname'));
 $table->add_filter($standardfilter);
@@ -104,12 +124,8 @@ if ($my && !empty($USER->department)) {
     // Show only current user's department.
     $departmentwhere = 'AND u.department = :department';
     $departmentparams = ['department' => $USER->department];
-} else if (!$my && !empty($USER->department)) {
-    // Show only current user's department (but they can't filter).
-    $departmentwhere = 'AND u.department = :department';
-    $departmentparams = ['department' => $USER->department];
 }
-// If !$my and empty($USER->department), show all with no WHERE clause (filter available above).
+// If my=0, show all users (no department WHERE clause).
 
 $from = "(
     SELECT
