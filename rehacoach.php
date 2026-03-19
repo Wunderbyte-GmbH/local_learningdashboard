@@ -69,6 +69,9 @@ $table->add_filter($standardfilter);
 $standardfilter = new standardfilter('coursename', get_string('course'));
 $table->add_filter($standardfilter);
 
+$standardfilter = new standardfilter('city', get_string('city'));
+$table->add_filter($standardfilter);
+
 // Add department filter when showing all users (my=0).
 if (!$my) {
     $standardfilter = new standardfilter('department', get_string('department'));
