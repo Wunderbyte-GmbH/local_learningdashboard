@@ -97,7 +97,12 @@ class lzk {
                 AND gg.userid = u.id
             WHERE q.name LIKE 'Quiz%'
                 AND gg.finalgrade IS NOT NULL
+        ";
 
+        // Only include HVP results if mod_hvp is installed.
+        $pluginman = \core_plugin_manager::instance();
+        if ($pluginman->get_plugin_info('mod', 'hvp') !== null) {
+            $sql .= "
             UNION ALL
 
             SELECT
@@ -123,6 +128,37 @@ class lzk {
                 ON gg.itemid = gi.id
                 AND gg.userid = u.id
             WHERE h.name LIKE 'Quiz%'
+                AND gg.finalgrade IS NOT NULL
+            ";
+        }
+
+        // Include core H5P activity (mod_h5pactivity) results.
+        $sql .= "
+            UNION ALL
+
+            SELECT
+                u.id AS userid,
+                gi.courseid,
+                ha.name,
+                ROUND(COALESCE(gg.finalgrade, 0), 2) AS finalgrade,
+                gg.timemodified
+
+            FROM {h5pactivity} ha
+            JOIN {grade_items} gi
+                ON gi.iteminstance = ha.id
+                AND gi.itemmodule = 'h5pactivity'
+            JOIN {course} c
+                ON c.id = gi.courseid
+            JOIN {enrol} e
+                ON e.courseid = c.id
+            JOIN {user_enrolments} ue
+                ON ue.enrolid = e.id
+            JOIN {user} u
+                ON u.id = ue.userid
+            JOIN {grade_grades} gg
+                ON gg.itemid = gi.id
+                AND gg.userid = u.id
+            WHERE ha.name LIKE 'Quiz%'
                 AND gg.finalgrade IS NOT NULL
         ";
 
