@@ -88,6 +88,22 @@ $table->define_columns([
 
 $fullname = $DB->sql_fullname('u.firstname', 'u.lastname');
 
+// Support multiple comma-separated cities for the trainer.
+$usercities = array_map('trim', explode(',', $USER->city ?? ''));
+$usercities = array_filter($usercities, function($c) { return $c !== ''; });
+$cityplaceholders = [];
+$cityparams = [];
+if (!empty($usercities)) {
+    foreach ($usercities as $i => $city) {
+        $key = 'city' . $i;
+        $cityplaceholders[] = ':' . $key;
+        $cityparams[$key] = $city;
+    }
+    $citysql = 'u.city IN (' . implode(',', $cityplaceholders) . ')';
+} else {
+    $citysql = '1=1';
+}
+
 $fields = "m.*";
 
 $from = "(
@@ -145,14 +161,12 @@ $from = "(
 
     WHERE
         u.deleted = 0
-        AND u.city = :city
+        AND $citysql
 ) m";
 
 $where = "1=1";
 
-$params = [
-    'city' => $USER->city,
-];
+$params = $cityparams;
 
 /*
  * Course filter
@@ -213,11 +227,11 @@ if (!empty($coursefiltersql)) {
 
         WHERE
             u.deleted = 0
-            AND u.city = :city
+            AND $citysql
             AND $coursefiltersql
     ) m";
 
-    $params = array_merge($params, $coursefilterparams);
+    $params = array_merge($cityparams, $coursefilterparams);
 }
 
 $table->set_filter_sql($fields, $from, $where, '', $params);

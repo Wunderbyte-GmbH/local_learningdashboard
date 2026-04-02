@@ -127,7 +127,7 @@ class base_learningdashboard_table extends wunderbyte_table {
         $out = [];
 
         foreach ($points as $p) {
-            $out[] = $p['name'] . ' – ' . $p['points'];
+            $out[] = $p['name'] . ' \u2013 ' . (int)round($p['points']);
         }
 
         return implode('<br>', $out);
@@ -163,10 +163,8 @@ class base_learningdashboard_table extends wunderbyte_table {
      * @return string The number of weekly activities.
      */
     public function col_weeklyactivities($row) {
-        if (isset($row->weeklyactivities)) {
-            return (int)$row->weeklyactivities;
-        }
-        return 0;
+        $service = \local_learningdashboard\service\activities::instance();
+        return $service->get_weekly_activities($row->id, $row->courseid);
     }
 
     /**
@@ -176,10 +174,8 @@ class base_learningdashboard_table extends wunderbyte_table {
      * @return string The number of monthly activities.
      */
     public function col_monthlyactivities($row) {
-        if (isset($row->monthlyactivities)) {
-            return (int)$row->monthlyactivities;
-        }
-        return 0;
+        $service = \local_learningdashboard\service\activities::instance();
+        return $service->get_monthly_activities($row->id, $row->courseid);
     }
 
     /**

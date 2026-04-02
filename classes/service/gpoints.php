@@ -90,10 +90,11 @@ JOIN {user_enrolments} ue
     ON ue.enrolid = e.id
 JOIN {user} u
     ON u.id = ue.userid
-LEFT JOIN {grade_grades} gg
+JOIN {grade_grades} gg
     ON gg.itemid = gi.id
     AND gg.userid = u.id
 WHERE a.name LIKE 'Kompetenzcheck%'
+    AND gg.finalgrade IS NOT NULL
         ";
 
         $rs = $DB->get_recordset_sql($sql);

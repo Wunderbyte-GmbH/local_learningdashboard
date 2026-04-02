@@ -40,7 +40,10 @@ echo $OUTPUT->header();
 
 $table = new \local_learningdashboard\table\grading_overview_table('grading_overviewtest' . $USER->id);
 
-$standardfilter = new standardfilter('fullname', get_string('course'));
+$standardfilter = new standardfilter('name', get_string('fullname'));
+$table->add_filter($standardfilter);
+
+$standardfilter = new standardfilter('coursename', get_string('course'));
 $table->add_filter($standardfilter);
 
 $standardfilter = new standardfilter('city', get_string('city'));
@@ -81,39 +84,58 @@ $table->define_columns([
  * SQL
  */
 
-$fields = "
-    s.id AS rowid,
-    u.id AS userid,
-      " . $DB->sql_fullname('u.firstname', 'u.lastname') . " AS name,
-    u.city,
-    c.fullname AS coursename,
-    a.name AS assignmentname,
-    s.timemodified AS submittedat,
-    s.attemptnumber,
-    cm.id AS cmid
-";
+// Support multiple comma-separated cities for the trainer.
+$usercities = array_map('trim', explode(',', $USER->city ?? ''));
+$usercities = array_filter($usercities, function($c) { return $c !== ''; });
+$cityplaceholders = [];
+$cityparams = [];
+if (!empty($usercities)) {
+    foreach ($usercities as $i => $city) {
+        $key = 'gradcity' . $i;
+        $cityplaceholders[] = ':' . $key;
+        $cityparams[$key] = $city;
+    }
+    $citysql = 'u.city IN (' . implode(',', $cityplaceholders) . ')';
+} else {
+    $citysql = '1=1';
+}
 
-$from = "
-    {assign_submission} s
+$fields = "grading.*";
+
+$innerselect = "
+    SELECT
+        s.id AS rowid,
+        u.id AS userid,
+        " . $DB->sql_fullname('u.firstname', 'u.lastname') . " AS name,
+        u.city,
+        u.department,
+        c.fullname AS coursename,
+        a.name AS assignmentname,
+        s.timemodified AS submittedat,
+        s.attemptnumber,
+        cm.id AS cmid
+    FROM {assign_submission} s
     JOIN {assign} a ON a.id = s.assignment
-    JOIN {modules} m ON m.name = 'assign'
-    JOIN {course_modules} cm ON cm.instance = a.id AND cm.module = m.id
+    JOIN {modules} md ON md.name = 'assign'
+    JOIN {course_modules} cm ON cm.instance = a.id AND cm.module = md.id
     JOIN {course} c ON c.id = cm.course
     JOIN {user} u ON u.id = s.userid
+    WHERE
+        s.status = 'submitted'
+        AND s.latest = 1
+        AND u.deleted = 0
+        AND s.timemodified < :time
+        AND $citysql
 ";
 
-$where = "
-    s.status = 'submitted'
-    AND s.latest = 1
-    AND u.deleted = 0
-    AND s.timemodified < :time
-    AND u.city = :city
-";
+$from = "($innerselect) grading";
 
-$params = [
-    'time' => time(),
-    'city' => $USER->city,
-];
+$where = "1=1";
+
+$params = array_merge(
+    ['time' => time()],
+    $cityparams
+);
 
 $table->set_filter_sql($fields, $from, $where, '', $params);
 

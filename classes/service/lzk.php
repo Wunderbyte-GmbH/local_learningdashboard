@@ -92,10 +92,38 @@ class lzk {
                 ON ue.enrolid = e.id
             JOIN {user} u
                 ON u.id = ue.userid
-            LEFT JOIN {grade_grades} gg
+            JOIN {grade_grades} gg
                 ON gg.itemid = gi.id
                 AND gg.userid = u.id
             WHERE q.name LIKE 'Quiz%'
+                AND gg.finalgrade IS NOT NULL
+
+            UNION ALL
+
+            SELECT
+                u.id AS userid,
+                gi.courseid,
+                h.name,
+                ROUND(COALESCE(gg.finalgrade, 0), 2) AS finalgrade,
+                gg.timemodified
+
+            FROM {hvp} h
+            JOIN {grade_items} gi
+                ON gi.iteminstance = h.id
+                AND gi.itemmodule = 'hvp'
+            JOIN {course} c
+                ON c.id = gi.courseid
+            JOIN {enrol} e
+                ON e.courseid = c.id
+            JOIN {user_enrolments} ue
+                ON ue.enrolid = e.id
+            JOIN {user} u
+                ON u.id = ue.userid
+            JOIN {grade_grades} gg
+                ON gg.itemid = gi.id
+                AND gg.userid = u.id
+            WHERE h.name LIKE 'Quiz%'
+                AND gg.finalgrade IS NOT NULL
         ";
 
         $rs = $DB->get_recordset_sql($sql);
