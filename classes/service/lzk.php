@@ -99,67 +99,51 @@ class lzk {
                 AND gg.finalgrade IS NOT NULL
         ";
 
-        // Only include HVP results if mod_hvp is installed.
+        // Only include HVP results if the hvp table exists.
         $pluginman = \core_plugin_manager::instance();
-        if ($pluginman->get_plugin_info('mod', 'hvp') !== null) {
+        if ($DB->get_manager()->table_exists('hvp') && $DB->get_manager()->table_exists('hvp_xapi_results')) {
             $sql .= "
             UNION ALL
-
             SELECT
-                u.id AS userid,
-                gi.courseid,
-                h.name,
-                ROUND(COALESCE(gg.finalgrade, 0), 2) AS finalgrade,
-                gg.timemodified
+            gg.userid,
+            gi.courseid,
+            gi.itemname AS name,
+            ROUND(gg.finalgrade, 2) AS finalgrade,
+            gg.timemodified
 
-            FROM {hvp} h
-            JOIN {grade_items} gi
-                ON gi.iteminstance = h.id
-                AND gi.itemmodule = 'hvp'
-            JOIN {course} c
-                ON c.id = gi.courseid
-            JOIN {enrol} e
-                ON e.courseid = c.id
-            JOIN {user_enrolments} ue
-                ON ue.enrolid = e.id
-            JOIN {user} u
-                ON u.id = ue.userid
-            JOIN {grade_grades} gg
-                ON gg.itemid = gi.id
-                AND gg.userid = u.id
-            WHERE h.name LIKE 'Quiz%'
-                AND gg.finalgrade IS NOT NULL
+            FROM {grade_items} gi
+            JOIN {grade_grades} gg ON gg.itemid = gi.id
+
+            WHERE gi.itemmodule = 'hvp'
+            AND gi.itemname LIKE 'Quiz%'
+            AND gg.finalgrade IS NOT NULL
             ";
         }
 
-        // Include core H5P activity (mod_h5pactivity) results.
+        // Include core H5P activity (mod_h5pactivity) results from attempts directly.
         $sql .= "
             UNION ALL
 
             SELECT
-                u.id AS userid,
-                gi.courseid,
+                haa.userid,
+                ha.course AS courseid,
                 ha.name,
-                ROUND(COALESCE(gg.finalgrade, 0), 2) AS finalgrade,
-                gg.timemodified
+                ROUND(COALESCE(
+                    CASE WHEN MAX(haa.maxscore) > 0
+                        THEN MAX(haa.rawscore) / MAX(haa.maxscore) * 100
+                        ELSE MAX(haa.rawscore)
+                    END
+                , 0), 2) AS finalgrade,
+                MAX(haa.timemodified) AS timemodified
 
             FROM {h5pactivity} ha
-            JOIN {grade_items} gi
-                ON gi.iteminstance = ha.id
-                AND gi.itemmodule = 'h5pactivity'
-            JOIN {course} c
-                ON c.id = gi.courseid
-            JOIN {enrol} e
-                ON e.courseid = c.id
-            JOIN {user_enrolments} ue
-                ON ue.enrolid = e.id
-            JOIN {user} u
-                ON u.id = ue.userid
-            JOIN {grade_grades} gg
-                ON gg.itemid = gi.id
-                AND gg.userid = u.id
+            JOIN {h5pactivity_attempts} haa ON haa.h5pactivityid = ha.id
+            JOIN {user} u ON u.id = haa.userid
+            JOIN {user_enrolments} ue ON ue.userid = u.id
+            JOIN {enrol} e ON e.id = ue.enrolid AND e.courseid = ha.course
             WHERE ha.name LIKE 'Quiz%'
-                AND gg.finalgrade IS NOT NULL
+                AND haa.rawscore IS NOT NULL
+            GROUP BY haa.userid, ha.course, ha.name, ha.id
         ";
 
         $rs = $DB->get_recordset_sql($sql);

@@ -38,8 +38,8 @@ $table->define_headers([
     get_string('city'),
     get_string('department'),
     get_string('progress'),
-    'Geschäftsabschlüsse',
-    'Lernzielkontrollen',
+    get_string('geschaeftsabschluesse', 'local_learningdashboard'),
+    get_string('lernzielkontrollen', 'local_learningdashboard'),
     get_string('weeklyactivities', 'local_learningdashboard'),
     get_string('monthlyactivities', 'local_learningdashboard'),
 ]);

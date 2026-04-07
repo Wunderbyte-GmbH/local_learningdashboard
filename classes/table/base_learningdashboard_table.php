@@ -127,7 +127,7 @@ class base_learningdashboard_table extends wunderbyte_table {
         $out = [];
 
         foreach ($points as $p) {
-            $out[] = $p['name'] . ' \u2013 ' . (int)round($p['points']);
+            $out[] = $p['name'] . ' - ' . (int)round($p['points']);
         }
 
         return implode('<br>', $out);
