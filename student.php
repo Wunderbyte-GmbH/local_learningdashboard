@@ -43,6 +43,9 @@ $table = new student_progress_table('student_progress' . $USER->id);
 
 $fullname = $DB->sql_fullname('u.firstname', 'u.lastname');
 
+$weekago = time() - 7 * 24 * 60 * 60;
+$monthago = time() - 30 * 24 * 60 * 60;
+
 // Headers.
 $table->define_headers([
     get_string('course'),
@@ -51,6 +54,7 @@ $table->define_headers([
      get_string('lernzielkontrollen', 'local_learningdashboard'),
      get_string('weeklyactivities', 'local_learningdashboard'),
      get_string('monthlyactivities', 'local_learningdashboard'),
+     get_string('lastactive', 'local_learningdashboard'),
     ]);
 
 // Columns.
@@ -61,6 +65,7 @@ $table->define_columns([
     'lzk',
     'weeklyactivities',
     'monthlyactivities',
+    'lastactive',
     ]);
 
     /*
@@ -77,8 +82,9 @@ $table->define_columns([
             c.fullname as coursename,
             '' AS gpoints,
             '' AS lzk,
-            '' AS weeklyactivities,
-            '' AS monthlyactivities,
+            COALESCE(act.weeklyactivities, 0) AS weeklyactivities,
+            COALESCE(act.monthlyactivities, 0) AS monthlyactivities,
+            act.lastactive,
             COALESCE(
                 ROUND(
                     SUM(CASE WHEN cmc.completionstate = 1 THEN 1 ELSE 0 END)
@@ -99,6 +105,17 @@ $table->define_columns([
         LEFT JOIN {course_modules_completion} cmc
             ON cmc.coursemoduleid = cm.id
             AND cmc.userid = :userid2
+        LEFT JOIN (
+            SELECT
+                cmc.userid,
+                cm.course,
+                SUM(CASE WHEN cmc.timemodified >= :weekago1 THEN 1 ELSE 0 END) AS weeklyactivities,
+                SUM(CASE WHEN cmc.timemodified >= :monthago1 THEN 1 ELSE 0 END) AS monthlyactivities,
+                MAX(cmc.timemodified) AS lastactive
+            FROM {course_modules_completion} cmc
+            JOIN {course_modules} cm ON cm.id = cmc.coursemoduleid
+            GROUP BY cmc.userid, cm.course
+        ) act ON act.course = c.id AND act.userid = u.id
         WHERE c.visible = 1
         GROUP BY u.id, c.id, c.fullname
     ) m";
@@ -108,6 +125,8 @@ $table->define_columns([
     $params = [
         'userid1' => $USER->id,
         'userid2' => $USER->id,
+        'weekago1' => $weekago,
+        'monthago1' => $monthago,
     ];
 
     /*
@@ -124,8 +143,9 @@ $table->define_columns([
                 c.fullname as coursename,
                 '' AS gpoints,
                 '' AS lzk,
-                '' AS weeklyactivities,
-                '' AS monthlyactivities,
+                COALESCE(act.weeklyactivities, 0) AS weeklyactivities,
+                COALESCE(act.monthlyactivities, 0) AS monthlyactivities,
+                act.lastactive,
                 ROUND(
                     (SUM(CASE WHEN cmc.completionstate = 1 THEN 1 ELSE 0 END) * 100.0)
                     / NULLIF(COUNT(cm.id), 0),
@@ -144,10 +164,24 @@ $table->define_columns([
             LEFT JOIN {course_modules_completion} cmc
                 ON cmc.coursemoduleid = cm.id
                 AND cmc.userid = :userid2
+            LEFT JOIN (
+                SELECT
+                    cmc.userid,
+                    cm.course,
+                    SUM(CASE WHEN cmc.timemodified >= :weekago2 THEN 1 ELSE 0 END) AS weeklyactivities,
+                    SUM(CASE WHEN cmc.timemodified >= :monthago2 THEN 1 ELSE 0 END) AS monthlyactivities,
+                    MAX(cmc.timemodified) AS lastactive
+                FROM {course_modules_completion} cmc
+                JOIN {course_modules} cm ON cm.id = cmc.coursemoduleid
+                GROUP BY cmc.userid, cm.course
+            ) act ON act.course = c.id AND act.userid = u.id
             WHERE c.visible = 1 AND " . $coursefiltersql . "
             GROUP BY u.id, c.id, c.fullname
         ) m";
-        $params = array_merge($params, $coursefilterparams);
+        $params = array_merge($params, $coursefilterparams, [
+            'weekago2' => $weekago,
+            'monthago2' => $monthago,
+        ]);
     }
 
     $table->set_filter_sql($fields, $from, $where, '', $params);
@@ -161,6 +195,7 @@ $table->define_columns([
         'lzk',
         'weeklyactivities',
         'monthlyactivities',
+        'lastactive',
     ]);
 
     $table->define_fulltextsearchcolumns([

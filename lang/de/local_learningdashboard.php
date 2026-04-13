@@ -33,6 +33,7 @@ $string['learningdashboard:manage'] = 'Learning-Dashboard-Einstellungen verwalte
 $string['learningdashboard:viewrehacoach'] = 'Reha-Coach-Dashboard anzeigen';
 $string['learningdashboard:viewstudent'] = 'Schüler-Learning-Dashboard anzeigen';
 $string['learningdashboard:viewtrainer'] = 'Trainer-Learning-Dashboard anzeigen';
+$string['lastactive'] = 'Zuletzt aktiv';
 $string['lernzielkontrollen'] = 'Quiz';
 $string['monthlyactivities'] = 'Monat';
 $string['pluginname'] = 'Learning Dashboard';

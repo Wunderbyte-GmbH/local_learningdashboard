@@ -110,6 +110,7 @@ $innerselect = "
         u.city,
         u.department,
         c.fullname AS coursename,
+        c.id AS courseid,
         a.name AS assignmentname,
         s.timemodified AS submittedat,
         s.attemptnumber,

@@ -72,6 +72,9 @@ class base_learningdashboard_table extends wunderbyte_table {
      * @return string The formatted full name.
      */
     public function col_coursename($values): string {
+        if (empty($values->courseid) || empty($values->coursename)) {
+            return '-';
+        }
         $url = new \moodle_url('/course/view.php', ['id' => $values->courseid]);
         return html_writer::link($url, format_string($values->coursename));
     }
@@ -159,23 +162,31 @@ class base_learningdashboard_table extends wunderbyte_table {
     /**
      * Format the weekly activities column for display.
      *
-     * @param stdClass $row The row data object containing userid.
+     * @param stdClass $row The row data object containing weeklyactivities.
      * @return string The number of weekly activities.
      */
     public function col_weeklyactivities($row) {
-        $service = \local_learningdashboard\service\activities::instance();
-        return $service->get_weekly_activities($row->id, $row->courseid);
+        return (int)$row->weeklyactivities;
     }
 
     /**
      * Format the monthly activities column for display.
      *
-     * @param stdClass $row The row data object containing userid.
+     * @param stdClass $row The row data object containing monthlyactivities.
      * @return string The number of monthly activities.
      */
     public function col_monthlyactivities($row) {
-        $service = \local_learningdashboard\service\activities::instance();
-        return $service->get_monthly_activities($row->id, $row->courseid);
+        return (int)$row->monthlyactivities;
+    }
+
+    /**
+     * Format the last active column for display.
+     *
+     * @param stdClass $row The row data object containing lastactive timestamp.
+     * @return string The formatted last activity date or empty string.
+     */
+    public function col_lastactive($row) {
+        return !empty($row->lastactive) ? userdate($row->lastactive) : '-';
     }
 
     /**

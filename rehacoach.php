@@ -91,6 +91,7 @@ $table->define_headers([
     get_string('lernzielkontrollen', 'local_learningdashboard'),
     get_string('weeklyactivities', 'local_learningdashboard'),
     get_string('monthlyactivities', 'local_learningdashboard'),
+    get_string('lastactive', 'local_learningdashboard'),
 ]);
 
 /*
@@ -106,6 +107,7 @@ $table->define_columns([
     'lzk',
     'weeklyactivities',
     'monthlyactivities',
+    'lastactive',
 ]);
 
 /*
@@ -113,6 +115,9 @@ $table->define_columns([
  */
 
 $fullname = $DB->sql_fullname('u.firstname', 'u.lastname');
+
+$weekago = time() - 7 * 24 * 60 * 60;
+$monthago = time() - 30 * 24 * 60 * 60;
 
 $fields = "m.*";
 
@@ -142,8 +147,9 @@ $from = "(
 
         '' AS gpoints,
         '' AS lzk,
-        '' AS weeklyactivities,
-        '' AS monthlyactivities,
+        COALESCE(act.weeklyactivities, 0) AS weeklyactivities,
+        COALESCE(act.monthlyactivities, 0) AS monthlyactivities,
+        act.lastactive,
 
         COALESCE(
             ROUND(
@@ -183,6 +189,19 @@ $from = "(
         GROUP BY cm.course, cmc.userid
     ) cc ON cc.course = c.id AND cc.userid = u.id
 
+    /* activities data */
+    LEFT JOIN (
+        SELECT
+            cmc.userid,
+            cm.course,
+            SUM(CASE WHEN cmc.timemodified >= :weekago1 THEN 1 ELSE 0 END) AS weeklyactivities,
+            SUM(CASE WHEN cmc.timemodified >= :monthago1 THEN 1 ELSE 0 END) AS monthlyactivities,
+            MAX(cmc.timemodified) AS lastactive
+        FROM {course_modules_completion} cmc
+        JOIN {course_modules} cm ON cm.id = cmc.coursemoduleid
+        GROUP BY cmc.userid, cm.course
+    ) act ON act.course = c.id AND act.userid = u.id
+
     WHERE
         u.deleted = 0
         $departmentwhere
@@ -190,7 +209,10 @@ $from = "(
 
 $where = "1=1";
 
-$params = $departmentparams;
+$params = array_merge($departmentparams, [
+    'weekago1' => $weekago,
+    'monthago1' => $monthago,
+]);
 
 /*
  * Course filter
@@ -210,8 +232,9 @@ if (!empty($coursefiltersql)) {
 
             '' AS gpoints,
             '' AS lzk,
-            '' AS weeklyactivities,
-            '' AS monthlyactivities,
+            COALESCE(act.weeklyactivities, 0) AS weeklyactivities,
+            COALESCE(act.monthlyactivities, 0) AS monthlyactivities,
+            act.lastactive,
 
             COALESCE(
                 ROUND(
@@ -249,13 +272,28 @@ if (!empty($coursefiltersql)) {
             GROUP BY cm.course, cmc.userid
         ) cc ON cc.course = c.id AND cc.userid = u.id
 
+        LEFT JOIN (
+            SELECT
+                cmc.userid,
+                cm.course,
+                SUM(CASE WHEN cmc.timemodified >= :weekago2 THEN 1 ELSE 0 END) AS weeklyactivities,
+                SUM(CASE WHEN cmc.timemodified >= :monthago2 THEN 1 ELSE 0 END) AS monthlyactivities,
+                MAX(cmc.timemodified) AS lastactive
+            FROM {course_modules_completion} cmc
+            JOIN {course_modules} cm ON cm.id = cmc.coursemoduleid
+            GROUP BY cmc.userid, cm.course
+        ) act ON act.course = c.id AND act.userid = u.id
+
         WHERE
             u.deleted = 0
             $departmentwhere
             AND $coursefiltersql
     ) m";
 
-    $params = array_merge($departmentparams, $coursefilterparams);
+    $params = array_merge($departmentparams, $coursefilterparams, [
+        'weekago2' => $weekago,
+        'monthago2' => $monthago,
+    ]);
 }
 
 $table->set_filter_sql($fields, $from, $where, '', $params);
@@ -270,6 +308,7 @@ $table->define_sortablecolumns([
     'userprogress',
     'weeklyactivities',
     'monthlyactivities',
+    'lastactive',
 ]);
 
 $table->define_fulltextsearchcolumns([
