@@ -150,7 +150,7 @@ class base_learningdashboard_table extends wunderbyte_table {
         $out = [];
 
         foreach ($points as $p) {
-            $out[] = $p['name'] . ' – ' . $p['points'] . ' ' . $p['timemodified'];
+            $out[] = $p['name'] . ' – ' . $p['percentage'] . '%';
         }
 
         return implode('<br>', $out);

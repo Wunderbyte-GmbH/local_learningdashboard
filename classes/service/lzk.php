@@ -78,6 +78,13 @@ class lzk {
                 gi.courseid,
                 q.name,
                 ROUND(COALESCE(gg.finalgrade, 0), 2) AS finalgrade,
+                gi.grademax,
+                ROUND(
+                    CASE WHEN gi.grademax > 0
+                        THEN (COALESCE(gg.finalgrade, 0) / gi.grademax) * 100
+                        ELSE 0
+                    END
+                , 1) AS percentage,
                 gg.timemodified
 
             FROM {quiz} q
@@ -109,6 +116,13 @@ class lzk {
             gi.courseid,
             gi.itemname AS name,
             ROUND(gg.finalgrade, 2) AS finalgrade,
+            gi.grademax,
+            ROUND(
+                CASE WHEN gi.grademax > 0
+                    THEN (gg.finalgrade / gi.grademax) * 100
+                    ELSE 0
+                END
+            , 1) AS percentage,
             gg.timemodified
 
             FROM {grade_items} gi
@@ -134,6 +148,13 @@ class lzk {
                         ELSE MAX(haa.rawscore)
                     END
                 , 0), 2) AS finalgrade,
+                MAX(haa.maxscore) AS grademax,
+                ROUND(
+                    CASE WHEN MAX(haa.maxscore) > 0
+                        THEN (MAX(haa.rawscore) / MAX(haa.maxscore)) * 100
+                        ELSE 0
+                    END
+                , 1) AS percentage,
                 MAX(haa.timemodified) AS timemodified
 
             FROM {h5pactivity} ha
@@ -154,6 +175,8 @@ class lzk {
             $this->cache[$r->userid][$r->courseid][] = [
                 'name' => $r->name,
                 'points' => $r->finalgrade,
+                'maxpoints' => $r->grademax,
+                'percentage' => $r->percentage,
                 'timemodified' => $r->timemodified > 0 ? '(' . userdate($r->timemodified) . ')' : '',
             ];
         }
