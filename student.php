@@ -117,7 +117,7 @@ $table->define_columns([
             GROUP BY cmc.userid, cm.course
         ) act ON act.course = c.id AND act.userid = u.id
         WHERE c.visible = 1
-        GROUP BY u.id, c.id, c.fullname
+        GROUP BY u.id, c.id, c.fullname, act.weeklyactivities, act.monthlyactivities, act.lastactive
     ) m";
 
     $where = "1=1";
@@ -176,7 +176,7 @@ $table->define_columns([
                 GROUP BY cmc.userid, cm.course
             ) act ON act.course = c.id AND act.userid = u.id
             WHERE c.visible = 1 AND " . $coursefiltersql . "
-            GROUP BY u.id, c.id, c.fullname
+            GROUP BY u.id, c.id, c.fullname, act.weeklyactivities, act.monthlyactivities, act.lastactive
         ) m";
         $params = array_merge($params, $coursefilterparams, [
             'weekago2' => $weekago,
