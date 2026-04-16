@@ -58,9 +58,31 @@ class lzk {
     }
 
     /**
+     * Return a safe configured SQL LIKE pattern.
+     *
+     * @param string $settingname The config key.
+     * @param string $default The fallback pattern.
+     * @return string
+     */
+    private function get_safe_like_pattern(string $settingname, string $default): string {
+        $pattern = trim((string)get_config('local_learningdashboard', $settingname));
+        $pattern = clean_param($pattern, PARAM_TEXT);
+
+        if ($pattern === '' || preg_match('/[\'";`\\]/', $pattern)) {
+            $pattern = $default;
+        }
+
+        if (strpos($pattern, '%') === false && strpos($pattern, '_') === false) {
+            $pattern .= '%';
+        }
+
+        return $pattern;
+    }
+
+    /**
      * Load learning goal control points data from the database.
      *
-     * This method retrieves all quiz grades where the quiz name starts with 'Q:'
+     * This method retrieves all quiz grades matching the configured name pattern
      * and caches them for efficient access. Only executes once, subsequent calls return early.
      *
      * @return void
@@ -71,6 +93,12 @@ class lzk {
         if ($this->cache !== null) {
             return;
         }
+
+        $namepattern = $this->get_safe_like_pattern('lzknamepattern', 'Quiz%');
+        $params = [
+            'lzkpattern1' => $namepattern,
+            'lzkpattern3' => $namepattern,
+        ];
 
         $sql = "
             SELECT
@@ -102,7 +130,7 @@ class lzk {
             JOIN {grade_grades} gg
                 ON gg.itemid = gi.id
                 AND gg.userid = u.id
-            WHERE q.name LIKE 'Quiz%'
+            WHERE " . $DB->sql_like('q.name', ':lzkpattern1', false, false) . "
                 AND gg.finalgrade IS NOT NULL
         ";
 
@@ -129,9 +157,10 @@ class lzk {
             JOIN {grade_grades} gg ON gg.itemid = gi.id
 
             WHERE gi.itemmodule = 'hvp'
-            AND gi.itemname LIKE 'Quiz%'
+            AND " . $DB->sql_like('gi.itemname', ':lzkpattern2', false, false) . "
             AND gg.finalgrade IS NOT NULL
             ";
+            $params['lzkpattern2'] = $namepattern;
         }
 
         // Include core H5P activity (mod_h5pactivity) results from attempts directly.
@@ -162,12 +191,12 @@ class lzk {
             JOIN {user} u ON u.id = haa.userid
             JOIN {user_enrolments} ue ON ue.userid = u.id
             JOIN {enrol} e ON e.id = ue.enrolid AND e.courseid = ha.course
-            WHERE ha.name LIKE 'Quiz%'
+            WHERE " . $DB->sql_like('ha.name', ':lzkpattern3', false, false) . "
                 AND haa.rawscore IS NOT NULL
             GROUP BY haa.userid, ha.course, ha.name, ha.id
         ";
 
-        $rs = $DB->get_recordset_sql($sql);
+        $rs = $DB->get_recordset_sql($sql, $params);
 
         $this->cache = [];
 

@@ -110,6 +110,7 @@ $table->define_columns([
     'lastactive',
 ]);
 
+
 /*
  * SQL
  */
@@ -298,7 +299,7 @@ if (!empty($coursefiltersql)) {
 
 $table->set_filter_sql($fields, $from, $where, '', $params);
 
-$table->sortable(true, 'name', SORT_ASC);
+$table->sortable(true, 'lastactive', SORT_DESC);
 
 $table->define_sortablecolumns([
     'name',

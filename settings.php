@@ -84,5 +84,30 @@ if ($hassiteconfig) {
             new lang_string('showlzk_desc', 'local_learningdashboard'),
             1
         ));
+
+        // Header for activity name matching patterns.
+        $settings->add(new admin_setting_heading(
+            'local_learningdashboard_name_patterns',
+            new lang_string('namepatternsheading', 'local_learningdashboard'),
+            new lang_string('namepatternsheading_desc', 'local_learningdashboard')
+        ));
+
+        // Setting: Pattern for LZK/quiz names.
+        $settings->add(new admin_setting_configtext(
+            'local_learningdashboard/lzknamepattern',
+            new lang_string('lzknamepattern', 'local_learningdashboard'),
+            new lang_string('lzknamepattern_desc', 'local_learningdashboard'),
+            'Quiz%',
+            PARAM_TEXT
+        ));
+
+        // Setting: Pattern for Kompetenznachweis / gpoints names.
+        $settings->add(new admin_setting_configtext(
+            'local_learningdashboard/gpointsnamepattern',
+            new lang_string('gpointsnamepattern', 'local_learningdashboard'),
+            new lang_string('gpointsnamepattern_desc', 'local_learningdashboard'),
+            'Kompetenzcheck%',
+            PARAM_TEXT
+        ));
     }
 }

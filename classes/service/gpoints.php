@@ -58,10 +58,33 @@ class gpoints {
     }
 
     /**
+     * Return a safe configured SQL LIKE pattern.
+     *
+     * @param string $settingname The config key.
+     * @param string $default The fallback pattern.
+     * @return string
+     */
+    private function get_safe_like_pattern(string $settingname, string $default): string {
+        $pattern = trim((string)get_config('local_learningdashboard', $settingname));
+        $pattern = clean_param($pattern, PARAM_TEXT);
+
+        if ($pattern === '' || preg_match('/[\'";`\\]/', $pattern)) {
+            $pattern = $default;
+        }
+
+        if (strpos($pattern, '%') === false && strpos($pattern, '_') === false) {
+            $pattern .= '%';
+        }
+
+        return $pattern;
+    }
+
+    /**
      * Load gamification points data from the database.
      *
-     * This method retrieves all assignment grades where the assignment name starts with 'G:'
-     * and caches them for efficient access. Only executes once, subsequent calls return early.
+     * This method retrieves all assignment grades matching the configured
+     * competency-check name pattern and caches them for efficient access.
+     * Only executes once, subsequent calls return early.
      *
      * @return void
      */
@@ -71,6 +94,8 @@ class gpoints {
         if ($this->cache !== null) {
             return;
         }
+
+        $namepattern = $this->get_safe_like_pattern('gpointsnamepattern', 'Kompetenzcheck%');
 
         $sql = "
 SELECT
@@ -93,11 +118,11 @@ JOIN {user} u
 JOIN {grade_grades} gg
     ON gg.itemid = gi.id
     AND gg.userid = u.id
-WHERE a.name LIKE 'Kompetenzcheck%'
+WHERE " . $DB->sql_like('a.name', ':gpointsnamepattern', false, false) . "
     AND gg.finalgrade IS NOT NULL
         ";
 
-        $rs = $DB->get_recordset_sql($sql);
+        $rs = $DB->get_recordset_sql($sql, ['gpointsnamepattern' => $namepattern]);
 
         $this->cache = [];
 

@@ -68,6 +68,7 @@ $table->define_columns([
     'lastactive',
     ]);
 
+
     /*
      * Define SQL like in egbooking_table
      */
@@ -186,7 +187,7 @@ $table->define_columns([
 
     $table->set_filter_sql($fields, $from, $where, '', $params);
 
-    $table->sortable(true, 'coursename', SORT_ASC);
+    $table->sortable(true, 'lastactive', SORT_DESC);
 
     $table->define_sortablecolumns([
         'coursename',
