@@ -58,7 +58,7 @@ if (has_capability('local/learningdashboard:viewtrainer', $context)) {
 
 if (has_capability('local/learningdashboard:viewrehacoach', $context)) {
     $cards[] = [
-        'title' => 'Rehacoach View',
+        'title' => 'Reha-Coach View',
         'url' => (new moodle_url('/local/learningdashboard/rehacoach.php', ['my' => 1]))->out(),
         'icon' => 'fa-user-md',
     ];

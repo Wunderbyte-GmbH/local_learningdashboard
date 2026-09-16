@@ -106,7 +106,7 @@ $innerselect = "
     SELECT
         s.id AS rowid,
         u.id AS userid,
-        " . $DB->sql_fullname('u.firstname', 'u.lastname') . " AS name,
+        " . $DB->sql_fullname('u.lastname', 'u.firstname') . " AS name,
         u.city,
         u.department,
         c.fullname AS coursename,
@@ -121,9 +121,13 @@ $innerselect = "
     JOIN {course_modules} cm ON cm.instance = a.id AND cm.module = md.id
     JOIN {course} c ON c.id = cm.course
     JOIN {user} u ON u.id = s.userid
+    LEFT JOIN {assign_grades} g ON g.assignment = s.assignment
+        AND g.userid = s.userid
+        AND g.attemptnumber = s.attemptnumber
     WHERE
         s.status = 'submitted'
         AND s.latest = 1
+        AND (g.id IS NULL OR g.grade IS NULL OR g.grade < 0 OR g.timemodified < s.timemodified)
         AND u.deleted = 0
         AND s.timemodified < :time
         AND $citysql

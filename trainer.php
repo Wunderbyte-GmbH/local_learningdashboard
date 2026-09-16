@@ -89,7 +89,7 @@ $table->define_columns([
  * SQL
  */
 
-$fullname = $DB->sql_fullname('u.firstname', 'u.lastname');
+$fullname = $DB->sql_fullname('u.lastname', 'u.firstname');
 
 // Support multiple comma-separated cities for the trainer.
 $usercities = array_map('trim', explode(',', $USER->city ?? ''));

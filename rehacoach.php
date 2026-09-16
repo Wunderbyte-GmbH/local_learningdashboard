@@ -36,8 +36,8 @@ $my = optional_param('my', false, PARAM_BOOL);
 
 $PAGE->set_url('/local/learningdashboard/rehacoach.php');
 $PAGE->set_context($context);
-$PAGE->set_title('Reha Coach Dashboard');
-$PAGE->set_heading('Reha Coach Dashboard');
+$PAGE->set_title('Reha-Coach Dashboard');
+$PAGE->set_heading('Reha-Coach Dashboard');
 
 echo $OUTPUT->header();
 
@@ -115,7 +115,7 @@ $table->define_columns([
  * SQL
  */
 
-$fullname = $DB->sql_fullname('u.firstname', 'u.lastname');
+$fullname = $DB->sql_fullname('u.lastname', 'u.firstname');
 
 $weekago = time() - 7 * 24 * 60 * 60;
 $monthago = time() - 30 * 24 * 60 * 60;
