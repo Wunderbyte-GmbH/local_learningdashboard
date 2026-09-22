@@ -154,8 +154,6 @@ $table->define_sortablecolumns([
     'coursename',
     'assignmentname',
     'submittedat',
-    'weeklyactivities',
-    'monthlyactivities',
 ]);
 
 /*
