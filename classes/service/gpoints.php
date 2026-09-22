@@ -68,7 +68,7 @@ class gpoints {
         $pattern = trim((string)get_config('local_learningdashboard', $settingname));
         $pattern = clean_param($pattern, PARAM_TEXT);
 
-        if ($pattern === '' || preg_match('/[\'";`\\]/', $pattern)) {
+        if ($pattern === '' || preg_match('/[\'";`\\\\]/', $pattern)) {
             $pattern = $default;
         }
 
