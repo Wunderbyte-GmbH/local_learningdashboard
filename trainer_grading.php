@@ -104,6 +104,7 @@ $fields = "grading.*";
 
 $innerselect = "
     SELECT
+        s.id AS id,
         s.id AS rowid,
         u.id AS userid,
         " . $DB->sql_fullname('u.lastname', 'u.firstname') . " AS name,
