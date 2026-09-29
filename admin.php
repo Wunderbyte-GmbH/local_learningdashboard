@@ -1,5 +1,6 @@
 <?php
 require('../../config.php');
+require_once($CFG->dirroot . '/local/learningdashboard/lib.php');
 
 use local_wunderbyte_table\filters\types\standardfilter;
 
@@ -89,10 +90,7 @@ $from = "(
         COALESCE(act.monthlyactivities, 0) AS monthlyactivities,
         act.lastactive,
 
-        COALESCE(
-            ROUND(
-                100 * COALESCE(cc.completed, 0) / NULLIF(cm.total, 0)
-            , 2)
+        COALESCE(" . local_learningdashboard_progress_sql('COALESCE(cc.completed, 0)', 'cm.total') . "
         , 0) AS userprogress
 
     FROM {user} u
@@ -123,7 +121,7 @@ $from = "(
             ON cm.id = cmc.coursemoduleid
             AND cm.completion > 0
             AND cm.visible = 1
-        WHERE cmc.completionstate = 1
+        WHERE " . local_learningdashboard_completed_state_sql() . "
         GROUP BY cm.course, cmc.userid
     ) cc ON cc.course = c.id AND cc.userid = u.id
 
@@ -174,10 +172,7 @@ if (!empty($coursefiltersql)) {
             COALESCE(act.weeklyactivities, 0) AS weeklyactivities,
             COALESCE(act.monthlyactivities, 0) AS monthlyactivities,
             act.lastactive,
-            COALESCE(
-                ROUND(
-                    100 * COALESCE(cc.completed, 0) / NULLIF(cm.total, 0)
-                , 2)
+            COALESCE(" . local_learningdashboard_progress_sql('COALESCE(cc.completed, 0)', 'cm.total') . "
             , 0) AS userprogress
 
         FROM {user} u
@@ -206,7 +201,7 @@ if (!empty($coursefiltersql)) {
                 ON cm.id = cmc.coursemoduleid
                 AND cm.completion > 0
                 AND cm.visible = 1
-            WHERE cmc.completionstate = 1
+            WHERE " . local_learningdashboard_completed_state_sql() . "
             GROUP BY cm.course, cmc.userid
         ) cc ON cc.course = c.id AND cc.userid = u.id
 

@@ -23,6 +23,7 @@
  */
 
 require('../../config.php');
+require_once($CFG->dirroot . '/local/learningdashboard/lib.php');
 use local_learningdashboard\table\student_progress_table;
 
 use local_wunderbyte_table\filters\types\standardfilter;
@@ -86,11 +87,10 @@ $table->define_columns([
             COALESCE(act.weeklyactivities, 0) AS weeklyactivities,
             COALESCE(act.monthlyactivities, 0) AS monthlyactivities,
             act.lastactive,
-            COALESCE(
-                ROUND(
-                    SUM(CASE WHEN cmc.completionstate = 1 THEN 1 ELSE 0 END)
-                    / NULLIF(COUNT(cm.id), 0) * 100,
-                2),
+            COALESCE(" . local_learningdashboard_progress_sql(
+                    "SUM(CASE WHEN " . local_learningdashboard_completed_state_sql() . " THEN 1 ELSE 0 END)",
+                    "COUNT(cm.id)"
+                ) . ",
             0) AS userprogress
         FROM {course} c
         JOIN {enrol} e ON e.courseid = c.id
@@ -147,10 +147,10 @@ $table->define_columns([
                 COALESCE(act.weeklyactivities, 0) AS weeklyactivities,
                 COALESCE(act.monthlyactivities, 0) AS monthlyactivities,
                 act.lastactive,
-                ROUND(
-                    (SUM(CASE WHEN cmc.completionstate = 1 THEN 1 ELSE 0 END) * 100.0)
-                    / NULLIF(COUNT(cm.id), 0),
-                2) AS userprogress
+                " . local_learningdashboard_progress_sql(
+                    'SUM(CASE WHEN ' . local_learningdashboard_completed_state_sql() . ' THEN 1 ELSE 0 END)',
+                    'COUNT(cm.id)'
+                ) . " AS userprogress
             FROM {course} c
             JOIN {enrol} e ON e.courseid = c.id
             JOIN {user_enrolments} ue

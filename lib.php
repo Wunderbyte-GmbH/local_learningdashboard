@@ -102,3 +102,33 @@ function local_learningdashboard_get_course_filter_sql($coursealias = 'c'): arra
 
     return [$whereclaused, $params];
 }
+
+/**
+ * Completion states that count as completed, as an SQL condition.
+ *
+ * Mirrors core completion_info::count_modules_completed(): COMPLETION_COMPLETE (1) and
+ * COMPLETION_COMPLETE_PASS (2). Literal values on purpose - the constants live in
+ * lib/completionlib.php, which is not loaded in every context this code runs in.
+ * COMPLETION_COMPLETE_FAIL (3) is deliberately not counted, same as core.
+ *
+ * @param string $field Column holding the completion state
+ * @return string SQL condition
+ */
+function local_learningdashboard_completed_state_sql(string $field = 'cmc.completionstate'): string {
+    return $field . ' IN (1, 2)';
+}
+
+/**
+ * Progress percentage expression shared by all dashboard views.
+ *
+ * Multiplies by 100.0 before dividing: in PostgreSQL "100 * bigint / bigint" is integer division and
+ * truncates before ROUND() ever runs, which is why the staff views used to show 71 % where the
+ * learner view showed 71.4 % for the same learner.
+ *
+ * @param string $completed SQL expression counting completed activities
+ * @param string $total SQL expression counting activities with completion tracking
+ * @return string SQL expression yielding a percentage with two decimals
+ */
+function local_learningdashboard_progress_sql(string $completed, string $total): string {
+    return 'ROUND((100.0 * ' . $completed . ') / NULLIF(' . $total . ', 0), 2)';
+}
