@@ -64,19 +64,20 @@ if (has_capability('local/learningdashboard:viewrehacoach', $context)) {
     ];
 }
 
-if (has_capability('local/learningdashboard:viewstudent', $context)) {
-    $cards[] = [
-        'title' => 'Student View',
-        'url' => (new moodle_url('/local/learningdashboard/student.php'))->out(),
-        'icon' => 'fa-user-graduate',
-    ];
-
-    // $cards[] = [
-    //     'title' => 'Student Badges',
-    //     'url' => (new moodle_url('/local/learningdashboard/studentbadges.php'))->out(),
-    //     'icon' => 'fa-award',
-    // ];
-}
+// Student tiles are hidden for now.
+// if (has_capability('local/learningdashboard:viewstudent', $context)) {
+//     $cards[] = [
+//         'title' => 'Student View',
+//         'url' => (new moodle_url('/local/learningdashboard/student.php'))->out(),
+//         'icon' => 'fa-user-graduate',
+//     ];
+//
+//     $cards[] = [
+//         'title' => 'Student Badges',
+//         'url' => (new moodle_url('/local/learningdashboard/studentbadges.php'))->out(),
+//         'icon' => 'fa-award',
+//     ];
+// }
 
 echo $OUTPUT->header();
 
